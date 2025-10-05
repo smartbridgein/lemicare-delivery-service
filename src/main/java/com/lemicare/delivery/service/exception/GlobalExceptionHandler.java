@@ -1,81 +1,62 @@
 package com.lemicare.delivery.service.exception;
 
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.MessageSource;
-import org.springframework.http.*;
-import org.springframework.web.ErrorResponse;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ProblemDetail;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+import java.net.URI;
 import java.time.Instant;
-import java.util.Locale;
 
 @ControllerAdvice
-@Slf4j
-public class GlobalExceptionHandler {
+
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    // You can inject MessageSource if you have error messages in properties files
+    // @Autowired
+    // private MessageSource messageSource;
 
     /**
      * Handles AccessDeniedException, which is thrown by Spring Security or our
      * service layer when a user is not authorized to access a resource.
+     * Returns a 403 Forbidden with a ProblemDetail body.
      *
-     * @param ex The caught AccessDeniedException.
-     * @return A ResponseEntity with an HTTP 403 Forbidden status and a standardized error body.
+     * @param ex      The caught AccessDeniedException.
+     * @param request The current web request.
+     * @return A ResponseEntity with an HTTP 403 Forbidden status and a ProblemDetail body.
      */
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException ex) {
-        log.warn("Access Denied: {}", ex.getMessage());
+    public ResponseEntity<ProblemDetail> handleAccessDeniedException(AccessDeniedException ex, WebRequest request) {
+        logger.warn("Access Denied for request {}: {}", request.getDescription(false), ex.getMessage());
 
-        ErrorResponse errorResponse = new ErrorResponse(
-        ) {
-            @Override
-            public HttpStatusCode getStatusCode() {
-                return null;
-            }
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.FORBIDDEN, ex.getMessage());
+        problemDetail.setTitle("Access Denied");
+        problemDetail.setType(URI.create("https://lemicare.com/errors/access-denied")); // A custom URI for this error type
+        problemDetail.setInstance(URI.create(request.getDescription(false).substring(request.getDescription(false).indexOf("uri=") + 4))); // Extract URI from request description
+        problemDetail.setProperty("timestamp", Instant.now());
+        // You could add more properties from the exception or security context if useful
 
-            @Override
-            public HttpHeaders getHeaders() {
-                return ErrorResponse.super.getHeaders();
-            }
-
-            @Override
-            public ProblemDetail getBody() {
-                return null;
-            }
-
-            @Override
-            public String getTypeMessageCode() {
-                return ErrorResponse.super.getTypeMessageCode();
-            }
-
-            @Override
-            public String getTitleMessageCode() {
-                return ErrorResponse.super.getTitleMessageCode();
-            }
-
-            @Override
-            public String getDetailMessageCode() {
-                return ErrorResponse.super.getDetailMessageCode();
-            }
-
-            @Override
-            public Object[] getDetailMessageArguments() {
-                return ErrorResponse.super.getDetailMessageArguments();
-            }
-
-            @Override
-            public Object[] getDetailMessageArguments(MessageSource messageSource, Locale locale) {
-                return ErrorResponse.super.getDetailMessageArguments(messageSource, locale);
-            }
-
-            @Override
-            public ProblemDetail updateAndGetBody(MessageSource messageSource, Locale locale) {
-                return ErrorResponse.super.updateAndGetBody(messageSource, locale);
-            }
-        };
-
-        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(problemDetail);
     }
 
+    // You can add more @ExceptionHandler methods for other common exceptions like:
+    // @ExceptionHandler(IllegalArgumentException.class)
+    // public ResponseEntity<ProblemDetail> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+    //     ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
+    //     problemDetail.setTitle("Invalid Request Parameter");
+    //     problemDetail.setType(URI.create("https://lemicare.com/errors/invalid-parameter"));
+    //     problemDetail.setInstance(URI.create(request.getDescription(false).substring(request.getDescription(false).indexOf("uri=") + 4)));
+    //     problemDetail.setProperty("timestamp", Instant.now());
+    //     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    // }
 
+    // ... handle other exceptions as needed
 }

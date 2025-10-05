@@ -5,6 +5,7 @@ import com.lemicare.delivery.service.context.TenantContext;
 import com.lemicare.delivery.service.dto.request.CancelRequest;
 import com.lemicare.delivery.service.dto.request.CreateDeliveryRequest;
 import com.lemicare.delivery.service.dto.response.DeliveryResponse;
+import com.lemicare.delivery.service.security.SecurityUtils;
 import com.lemicare.delivery.service.service.DeliveryOrchestrationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -37,12 +38,12 @@ public class DeliveryController {
      * @return A DTO of the created delivery resource.
      */
     @PostMapping
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN','SCOPE_deliveries:write')")
+   // @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN')")
     public ResponseEntity<DeliveryResponse> createDeliveryRequest(@Valid @RequestBody CreateDeliveryRequest request) {
-        log.info("API: Create delivery for orderId: {} in org: {}, branch: {}",
-                request.getOrderId(), TenantContext.getOrganizationId(), TenantContext.getBranchId());
 
-        DeliveryResponse response = deliveryService.createDeliveryRequest(request);
+        String organizationId = SecurityUtils.getOrganizationId();
+        String branchId = SecurityUtils.getBranchId();
+        DeliveryResponse response = deliveryService.createDeliveryRequest(organizationId,branchId,request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 

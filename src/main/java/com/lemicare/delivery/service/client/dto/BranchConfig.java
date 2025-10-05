@@ -24,27 +24,37 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class BranchConfigDto {
+public class BranchConfig {
+
+    private String branchId; // Include branchId for context
+    private String branchName; // Include branchName for context
 
     /**
      * The unique "Pickup Nickname" for this branch as configured in the Shiprocket dashboard.
      * This field is mandatory for creating Shiprocket shipments and must be an exact match.
-     *
      * Example: "LemiCare-Downtown-WH"
      */
     private String shiprocketPickupLocation;
 
     /**
-     * An example of another configuration field you might add in the future.
-     * This could define the default courier partner for branches that don't specify one.
-     *
-     * Example: "SHIPROCKET"
+     * Defines the default courier partner for this branch.
+     * Example: "SHIPROCKET", "DELHIVERY", "LOCAL_COURIER"
      */
     private String defaultCourierPartner;
+
+    // Flattened address fields from the embedded primaryPickupAddress
+    private String pickupAddressLine1;
+    private String pickupAddressLine2;
+    private String pickupCity;
+    private String pickupState;
+    private String pickupPincode;
+    private String pickupCountry; // From Address model
+    private String pickupContactPerson;
+    private String pickupContactPhone;
+    private String pickupContactEmail;
 
     // Note: We do not add validation annotations like @NotBlank here.
     // This is a response DTO from a trusted, internal service. The responsibility for
     // ensuring the data is valid lies with the provider (organization-service).
     // The consumer's responsibility is to handle null or empty values gracefully.
-
 }

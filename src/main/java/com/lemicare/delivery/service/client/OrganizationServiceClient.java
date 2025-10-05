@@ -1,6 +1,6 @@
 package com.lemicare.delivery.service.client;
 
-import com.lemicare.delivery.service.client.dto.BranchConfigDto;
+import com.lemicare.delivery.service.client.dto.BranchConfig;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,7 +15,7 @@ public interface OrganizationServiceClient {
      * Fetches the branch-specific configuration, including the Shiprocket pickup location.
      */
     @GetMapping("/api/v1/internal/organizations/{orgId}/branches/{branchId}/config")
-    BranchConfigDto getBranchConfig(
+    BranchConfig getBranchConfig(
             @PathVariable("orgId") String organizationId,
             @PathVariable("branchId") String branchId
     );

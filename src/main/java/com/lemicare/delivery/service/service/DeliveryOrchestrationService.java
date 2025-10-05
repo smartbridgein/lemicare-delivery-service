@@ -27,9 +27,7 @@ public class DeliveryOrchestrationService {
     private final DeliveryOrderRepository deliveryOrderRepository;
     private final DeliveryStrategyFactory strategyFactory;
 
-    public DeliveryResponse createDeliveryRequest(CreateDeliveryRequest request) {
-        String organizationId = TenantContext.getOrganizationId();
-        String branchId = TenantContext.getBranchId();
+    public DeliveryResponse createDeliveryRequest(String organizationId,String branchId,CreateDeliveryRequest request) {
 
         deliveryOrderRepository.findByOrderIdAndOrganizationIdAndBranchId(request.getOrderId(), organizationId, branchId)
                 .ifPresent(existingOrder -> {

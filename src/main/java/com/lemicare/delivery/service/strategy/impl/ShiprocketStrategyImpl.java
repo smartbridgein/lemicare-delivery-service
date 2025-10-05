@@ -5,7 +5,7 @@ import com.cosmicdoc.common.model.DeliveryStatus;
 import com.lemicare.delivery.service.client.OrderServiceClient;
 import com.lemicare.delivery.service.client.OrganizationServiceClient;
 import com.lemicare.delivery.service.client.ShiprocketApiClient;
-import com.lemicare.delivery.service.client.dto.BranchConfigDto;
+import com.lemicare.delivery.service.client.dto.BranchConfig;
 import com.lemicare.delivery.service.client.dto.OrderDetailsDto;
 import com.lemicare.delivery.service.dto.request.ShiprocketCreateOrderRequest;
 import com.lemicare.delivery.service.dto.response.ShiprocketCreateOrderResponse;
@@ -119,7 +119,7 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
 
         // This is a clean, synchronous call using the Feign client interface.
         // Feign handles the HTTP request, authentication, and error decoding behind the scenes.
-        BranchConfigDto branchConfig = organizationServiceClient.getBranchConfig(
+        BranchConfig branchConfig = organizationServiceClient.getBranchConfig(
                 deliveryOrder.getOrganizationId(),
                 deliveryOrder.getBranchId()
         );
