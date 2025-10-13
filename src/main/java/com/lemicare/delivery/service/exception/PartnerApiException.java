@@ -3,6 +3,7 @@ package com.lemicare.delivery.service.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 
 /**
  * A custom runtime exception used to represent any error that occurs while
@@ -31,6 +32,7 @@ public class PartnerApiException extends RuntimeException {
      * A specific error code or reason provided by the partner in their response body. Can be null.
      */
     private final String partnerErrorCode;
+
 
     /**
      * The most detailed constructor.
@@ -61,4 +63,6 @@ public class PartnerApiException extends RuntimeException {
     public PartnerApiException(String message, String partnerName, HttpStatus httpStatusCode) {
         this(message, partnerName, httpStatusCode, null, null);
     }
+
+
 }

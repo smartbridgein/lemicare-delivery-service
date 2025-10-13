@@ -1,16 +1,20 @@
 package com.lemicare.delivery.service.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import jakarta.validation.constraints.NotEmpty;
 import java.util.List;
 
-
-@AllArgsConstructor
-@NoArgsConstructor
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ShiprocketCancelRequest {
-    // According to some versions of Shiprocket docs, they expect a list of AWBs.
-    private List<String> awbs;
+    @JsonProperty("awb")
+    @NotEmpty(message = "AWB list cannot be empty for cancellation")
+    private List<String> awbCodes;
 }

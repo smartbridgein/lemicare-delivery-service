@@ -122,6 +122,14 @@
 		</dependency>
 
 		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-handler</artifactId>
+			<version>4.1.100.Final</version>
+			<!-- Version might be managed by spring-boot-starter-webflux, but explicit can sometimes help -->
+			<!-- You can omit version if Spring Boot parent manages it. If you face issues, try a specific version. -->
+		</dependency>
+
+		<dependency>
 			<groupId>com.google.cloud</groupId>
 			<artifactId>google-cloud-firestore</artifactId>
 			<version>3.14.0</version>
@@ -159,15 +167,15 @@
 							<jvmFlag>-XX:InitialRAMPercentage=50</jvmFlag>
 							<jvmFlag>-XX:MaxRAMPercentage=70</jvmFlag>
 							<jvmFlag>-Djava.security.egd=file:/dev/./urandom</jvmFlag>
-							<jvmFlag>-Dserver.port=8087</jvmFlag>
+							<jvmFlag>-Dserver.port=8085</jvmFlag>
 							<jvmFlag>-Dspring.profiles.active=cloud</jvmFlag>
 						</jvmFlags>
 						<ports>
-							<port>8087</port>
+							<port>8085</port>
 						</ports>
 						<environment>
 							<SPRING_PROFILES_ACTIVE>cloud</SPRING_PROFILES_ACTIVE>
-							<PORT>8087</PORT>
+							<PORT>8085</PORT>
 						</environment>
 					</container>
 				</configuration>

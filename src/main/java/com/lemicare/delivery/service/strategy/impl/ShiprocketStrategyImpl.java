@@ -42,7 +42,7 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
         ShiprocketCreateOrderRequest shiprocketRequest = mapToShiprocketRequest(deliveryOrder);
 
         // 2. Call the Shiprocket API client.
-        ShiprocketCreateOrderResponse response = shiprocketApiClient.createOrder(shiprocketRequest);
+        ShiprocketCreateOrderResponse response = shiprocketApiClient.createOrder(shiprocketRequest).block();
 
         // 3. Validate the response and extract the tracking identifier.
         if (response == null || response.getAwbCode() == null || response.getAwbCode().isBlank()) {
@@ -90,7 +90,7 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
         log.info("Using ShiprocketStrategy to get status for AWB Code: {}", deliveryOrder.getPartnerTrackingId());
 
         // 1. Get the status string from the client.
-        String shiprocketStatus = shiprocketApiClient.trackOrder(deliveryOrder.getPartnerTrackingId());
+        String shiprocketStatus = String.valueOf(shiprocketApiClient.trackOrder(deliveryOrder.getPartnerTrackingId()));
 
         // 2. Map the partner's status string to our internal, standardized enum.
         DeliveryStatus internalStatus = mapShiprocketStatusToInternalStatus(shiprocketStatus);
