@@ -23,27 +23,27 @@ public class CreateDeliveryRequest {
      * This value must match one of the keys recognized by the DeliveryStrategyFactory.
      * Example: "SHIPROCKET"
      */
-    @NotBlank(message = "preferredPartner is required (e.g., SHIPROCKET).")
+   // @NotBlank(message = "preferredPartner is required (e.g., SHIPROCKET).")
     private String preferredPartner;
 
     /**
      * The full pickup address. This should be the address of the branch initiating the request.
      */
-    @NotBlank(message = "pickupAddress is required.")
-    @Size(max = 255, message = "pickupAddress cannot exceed 255 characters.")
+   // @NotBlank(message = "pickupAddress is required.")
+   // @Size(max = 255, message = "pickupAddress cannot exceed 255 characters.")
     private String pickupAddress;
 
     /**
      * The full drop-off address for the recipient.
      */
-    @NotBlank(message = "dropoffAddress is required.")
-    @Size(max = 255, message = "dropoffAddress cannot exceed 255 characters.")
+   // @NotBlank(message = "dropoffAddress is required.")
+  //  @Size(max = 255, message = "dropoffAddress cannot exceed 255 characters.")
     private String dropoffAddress;
 
     /**
      * The full name of the person receiving the package.
      */
-    @NotBlank(message = "recipientName is required.")
+  //  @NotBlank(message = "recipientName is required.")
     @Size(max = 100, message = "recipientName cannot exceed 100 characters.")
     private String recipientName;
 
@@ -51,7 +51,7 @@ public class CreateDeliveryRequest {
      * The contact phone number of the recipient.
      * A simple pattern is used for basic validation, but international numbers can vary.
      */
-    @NotBlank(message = "recipientPhone is required.")
+   // @NotBlank(message = "recipientPhone is required.")
     @Pattern(regexp = "^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\\s\\./0-9]*$", message = "Invalid phone number format.")
     @Size(min = 7, max = 20, message = "recipientPhone must be between 7 and 20 characters.")
     private String recipientPhone;

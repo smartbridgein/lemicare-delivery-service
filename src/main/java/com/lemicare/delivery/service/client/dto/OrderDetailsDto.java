@@ -34,6 +34,8 @@ public class OrderDetailsDto {
     /** The email address of the customer. */
     private String customerEmail;
 
+    private String customerPhone;
+
     /** The payment method used for the order (e.g., "Prepaid", "COD"). */
     private String paymentMethod;
 

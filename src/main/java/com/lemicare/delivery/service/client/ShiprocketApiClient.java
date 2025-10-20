@@ -8,9 +8,11 @@ import com.lemicare.delivery.service.client.dto.ShiprocketAvailableCourierCompan
 import com.lemicare.delivery.service.client.dto.ShiprocketServiceabilityResponse;
 import com.lemicare.delivery.service.config.ShiprocketConfig;
 import com.lemicare.delivery.service.client.dto.CourierServiceabilityRequest;
+import com.lemicare.delivery.service.dto.request.ShiprocketAssignAwbRequest;
 import com.lemicare.delivery.service.dto.request.ShiprocketAuthRequest;
 import com.lemicare.delivery.service.dto.request.ShiprocketCancelRequest;
 import com.lemicare.delivery.service.dto.request.ShiprocketCreateOrderRequest;
+import com.lemicare.delivery.service.dto.response.ShiprocketAssignAwbResponse;
 import com.lemicare.delivery.service.dto.response.ShiprocketAuthResponse;
 import com.lemicare.delivery.service.dto.response.ShiprocketCreateOrderResponse;
 import com.lemicare.delivery.service.dto.response.ShiprocketTrackingResponse;
@@ -209,6 +211,34 @@ public class ShiprocketApiClient {
                         .bodyToMono(ShiprocketCreateOrderResponse.class))
                 .doOnError(e -> log.error("Shiprocket: Exception during order creation for order_id {}: {}", request.getOrderId(), e.getMessage()));
     }
+
+    /**
+     * Assigns an AWB to a shipment using Shiprocket API.
+     *
+     * @param request The ShiprocketAssignAwbRequest containing shipment_id and courier_id.
+     * @return Mono emitting ShiprocketAssignAwbResponse.
+     */
+    public Mono<ShiprocketAssignAwbResponse> assignAwb(ShiprocketAssignAwbRequest request) {
+        log.info("Shiprocket: Assigning AWB for shipment_id: {}, courier_id: {}", request, request.getCourier_id());
+        try {
+            log.debug("Shiprocket: Assign AWB Request Body: {}", objectMapper.writeValueAsString(request));
+        } catch (JsonProcessingException e) {
+            log.warn("Shiprocket: Failed to log assign AWB request body: {}", e.getMessage());
+        }
+
+        return getValidAuthToken()
+                .flatMap(token -> webClient.post()
+                        .uri("/v1/external/courier/assign/awb")
+                        .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
+                        .bodyValue(request)
+                        .retrieve()
+                        .onStatus(status -> status.isError(),
+                                clientResponse -> processApiError(clientResponse, "Failed to assign AWB"))
+                        .bodyToMono(ShiprocketAssignAwbResponse.class))
+                .doOnError(e -> log.error("Shiprocket: Exception during AWB assignment for shipment_id {}: {}", request.getShipment_id(), e.getMessage()));
+    }
+
+
 
     /**
      * Cancels an order in Shiprocket by AWB code.

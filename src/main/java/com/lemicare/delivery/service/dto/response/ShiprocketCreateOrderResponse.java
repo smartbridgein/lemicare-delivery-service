@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 @AllArgsConstructor
 @Builder
 public class ShiprocketCreateOrderResponse {
-    private boolean status;
+    private String status;
     private Integer message; // Sometimes just a success code
     @JsonProperty("order_id")
     private Integer shiprocketOrderId; // Shiprocket's internal order ID

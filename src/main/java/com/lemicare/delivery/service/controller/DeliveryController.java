@@ -4,7 +4,9 @@ import com.cosmicdoc.common.model.DeliveryStatus;
 import com.lemicare.delivery.service.context.TenantContext;
 import com.lemicare.delivery.service.dto.request.CancelRequest;
 import com.lemicare.delivery.service.dto.request.CreateDeliveryRequest;
+import com.lemicare.delivery.service.dto.request.ShiprocketAssignAwbRequest;
 import com.lemicare.delivery.service.dto.response.DeliveryResponse;
+import com.lemicare.delivery.service.dto.response.ShiprocketAssignAwbResponse;
 import com.lemicare.delivery.service.security.SecurityUtils;
 import com.lemicare.delivery.service.service.DeliveryOrchestrationService;
 import jakarta.validation.Valid;
@@ -15,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.security.access.AccessDeniedException;
+import reactor.core.publisher.Mono;
 
 import java.util.List;
 
@@ -42,8 +45,8 @@ public class DeliveryController {
     public ResponseEntity<DeliveryResponse> createDeliveryRequest(@Valid @RequestBody CreateDeliveryRequest request) {
 
         String organizationId = SecurityUtils.getOrganizationId();
-        String branchId = SecurityUtils.getBranchId();
-        DeliveryResponse response = deliveryService.createDeliveryRequest(organizationId,branchId,request);
+       // String branchId = SecurityUtils.getBranchId();
+        DeliveryResponse response = deliveryService.createDeliveryRequest(organizationId,request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
@@ -55,7 +58,7 @@ public class DeliveryController {
      * @return The details of the delivery.
      */
     @GetMapping("/{deliveryId}")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN','SCOPE_deliveries:read')")
+   // @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN','SCOPE_deliveries:read')")
     public ResponseEntity<DeliveryResponse> getDeliveryById(@PathVariable String deliveryId) {
         log.info("API: Get delivery by ID: {} for org: {}, branch: {}",
                 deliveryId, TenantContext.getOrganizationId(), TenantContext.getBranchId());
@@ -71,12 +74,12 @@ public class DeliveryController {
      * @return A list of matching delivery DTOs.
      */
     @GetMapping
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN','SCOPE_deliveries:read')")
+    @PreAuthorize("hasAnyAuthority('SCOPE_customer.read', 'SCOPE_customer.write')")
     public ResponseEntity<List<DeliveryResponse>> findDeliveries(
             @RequestParam(required = false) DeliveryStatus status) {
 
-        log.info("API: Searching deliveries with status '{}' for org: {}, branch: {}",
-                status, TenantContext.getOrganizationId(), TenantContext.getBranchId());
+        log.info("API: Searching deliveries with status '{}' for org: {}, customer: {}",
+                status, TenantContext.getOrganizationId(), TenantContext.getUserId());
 
         List<DeliveryResponse> responses = deliveryService.findDeliveries(status);
         return ResponseEntity.ok(responses);
@@ -91,7 +94,7 @@ public class DeliveryController {
      * @return The updated delivery details.
      */
     @PostMapping("/{deliveryId}/cancel")
-    @PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN','SCOPE_deliveries:write')")
+    //@PreAuthorize("hasAnyAuthority('ROLE_ADMIN', 'ROLE_SUPER_ADMIN','SCOPE_deliveries:write')")
     public ResponseEntity<DeliveryResponse> cancelDelivery(
             @PathVariable String deliveryId,
             @Valid @RequestBody CancelRequest request) throws AccessDeniedException {
@@ -100,6 +103,12 @@ public class DeliveryController {
                 deliveryId, TenantContext.getOrganizationId(), request.getReason());
 
         DeliveryResponse response = deliveryService.cancelDelivery(deliveryId, request.getReason());
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/assignawb")
+    public ResponseEntity<DeliveryResponse> assignAwb(@RequestBody ShiprocketAssignAwbRequest request) {
+        DeliveryResponse response = deliveryService.createAwb(request);
         return ResponseEntity.ok(response);
     }
 }

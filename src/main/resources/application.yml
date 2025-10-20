@@ -56,11 +56,13 @@ shiprocket:
 services:
   # The base URL for the organization-service, pointing to the API Gateway.
   organization:
-    url: "http://localhost:8081" # Points to the API Gateway
+    url: "https://auth-service-511338430385.asia-south1.run.app"
+    #url: "http://localhost:8081" # Points to the API Gateway
 
   # The base URL for the order-service (e.g., storefront-service).
   order:
-    url: "http://localhost:8085" # Also points to the API Gateway
+    url: "https://lemicare-cms-service-511338430385.asia-south1.run.app"
+    #url: "http://localhost:8086" # Also points to the API Gateway
 
 # ===================================================================
 # CUSTOM APPLICATION PROPERTIES

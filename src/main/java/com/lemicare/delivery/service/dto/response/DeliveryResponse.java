@@ -72,4 +72,8 @@ public class DeliveryResponse {
 
     /** The timestamp when the delivery was successfully completed. Null until delivered. */
     private Date deliveredAt;
+
+    private int courierId;
+
+    private int shipmentId;
 }

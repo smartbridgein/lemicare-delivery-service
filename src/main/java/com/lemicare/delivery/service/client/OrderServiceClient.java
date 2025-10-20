@@ -14,6 +14,6 @@ public interface OrderServiceClient {
     /**
      * Fetches enriched order details, including line items and package dimensions.
      */
-    @GetMapping("/api/v1/internal/orders/{orderId}")
-    OrderDetailsDto getOrderDetails(@PathVariable("orderId") String orderId);
+    @GetMapping("/api/internal/{orgId}/orders/{orderId}")
+    OrderDetailsDto getOrderDetails(@PathVariable("orgId") String orgId,@PathVariable("orderId") String orderId);
 }

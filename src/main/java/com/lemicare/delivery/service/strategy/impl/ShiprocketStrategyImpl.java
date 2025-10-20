@@ -2,12 +2,17 @@ package com.lemicare.delivery.service.strategy.impl;
 
 import com.cosmicdoc.common.model.DeliveryOrder;
 import com.cosmicdoc.common.model.DeliveryStatus;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.lemicare.delivery.service.client.OrderServiceClient;
 import com.lemicare.delivery.service.client.OrganizationServiceClient;
 import com.lemicare.delivery.service.client.ShiprocketApiClient;
 import com.lemicare.delivery.service.client.dto.BranchConfig;
 import com.lemicare.delivery.service.client.dto.OrderDetailsDto;
+import com.lemicare.delivery.service.dto.request.ShiprocketAssignAwbRequest;
 import com.lemicare.delivery.service.dto.request.ShiprocketCreateOrderRequest;
+import com.lemicare.delivery.service.dto.response.ShiprocketAssignAwbResponse;
 import com.lemicare.delivery.service.dto.response.ShiprocketCreateOrderResponse;
 import com.lemicare.delivery.service.exception.PartnerApiException;
 import com.lemicare.delivery.service.strategy.DeliveryPartnerStrategy;
@@ -35,26 +40,37 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
     }
 
     @Override
-    public String createShipment(DeliveryOrder deliveryOrder) throws PartnerApiException {
+    public int createShipment(String orgId,DeliveryOrder deliveryOrder) throws PartnerApiException {
         log.info("Using ShiprocketStrategy to create shipment for internal orderId: {}", deliveryOrder.getOrderId());
 
         // 1. Map our internal model to the partner-specific request DTO.
-        ShiprocketCreateOrderRequest shiprocketRequest = mapToShiprocketRequest(deliveryOrder);
+        ShiprocketCreateOrderRequest shiprocketRequest = mapToShiprocketRequest(orgId,deliveryOrder);
 
         // 2. Call the Shiprocket API client.
         ShiprocketCreateOrderResponse response = shiprocketApiClient.createOrder(shiprocketRequest).block();
 
         // 3. Validate the response and extract the tracking identifier.
-        if (response == null || response.getAwbCode() == null || response.getAwbCode().isBlank()) {
-            log.error("Shiprocket API call succeeded but returned a null or empty AWB code for orderId: {}", deliveryOrder.getOrderId());
+        if (response == null || response.getShipmentId() == null) {
+            log.error("Shiprocket API call succeeded but returned a null or empty shipment id  for orderId: {}", deliveryOrder.getOrderId());
             throw new PartnerApiException("Shiprocket returned an invalid tracking code.", PARTNER_NAME, null);
         }
 
-        String awbCode = response.getAwbCode();
-        log.info("Successfully created Shiprocket shipment for orderId: {}. AWB Code: {}", deliveryOrder.getOrderId(), awbCode);
+        int shipmentId = response.getShipmentId();
+        log.info("Successfully created Shiprocket shipment for orderId: {}. shipment Code: {}", deliveryOrder.getOrderId(), shipmentId);
 
         // 4. The AWB code is the partner's unique tracking ID.
-        return awbCode;
+        return shipmentId;
+    }
+
+   public  String assignAwb (String orgId, ShiprocketAssignAwbRequest shiprocketAssignAwbRequest) {
+        log.info("Using ShiprocketStrategy to request to update AWB Code: {}", shiprocketAssignAwbRequest.getShipment_id());
+
+        // Delegate the actual API call to the client.
+       ShiprocketAssignAwbResponse shiprocketAssignAwbResponse = shiprocketApiClient.assignAwb(shiprocketAssignAwbRequest).block();
+
+        String awbCode = null;
+       // log.info("Successfully  request to Shiprocket for AWB Code: {}", shiprocketAssignAwbRequest.getPartnerTrackingId());
+     return awbCode;
     }
 
     /**
@@ -109,7 +125,7 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
      * @param deliveryOrder Our internal data model containing the core delivery info.
      * @return The DTO ready to be sent to the Shiprocket API.
      */
-    private ShiprocketCreateOrderRequest mapToShiprocketRequest(DeliveryOrder deliveryOrder) {
+    private ShiprocketCreateOrderRequest mapToShiprocketRequest(String orgId,DeliveryOrder deliveryOrder) {
         log.info("Mapping internal orderId {} to Shiprocket request by calling dependent services.", deliveryOrder.getOrderId());
 
         // ===================================================================
@@ -119,25 +135,26 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
 
         // This is a clean, synchronous call using the Feign client interface.
         // Feign handles the HTTP request, authentication, and error decoding behind the scenes.
-        BranchConfig branchConfig = organizationServiceClient.getBranchConfig(
+       /* BranchConfig branchConfig = organizationServiceClient.getBranchConfig(
                 deliveryOrder.getOrganizationId(),
                 deliveryOrder.getBranchId()
         );
-
+*/
         // Robustness check: Ensure we got a valid configuration.
-        if (branchConfig == null || branchConfig.getShiprocketPickupLocation() == null || branchConfig.getShiprocketPickupLocation().isBlank()) {
+       /* if (branchConfig == null || branchConfig.getShiprocketPickupLocation() == null || branchConfig.getShiprocketPickupLocation().isBlank()) {
             throw new IllegalStateException("Missing or invalid Shiprocket pickup location configuration for branchId: " + deliveryOrder.getBranchId());
         }
         String pickupLocation = branchConfig.getShiprocketPickupLocation();
         log.debug("Successfully fetched pickup location: {}", pickupLocation);
-
+*/
+        String pickupLocation = "15-2 Dr. Hanan Dermatology ,Gem Bhoomi & Buildings";
         // ===================================================================
         // 2. FETCH ENRICHED ORDER AND PRODUCT DETAILS
         // ===================================================================
         log.debug("Fetching full order details for orderId: {}", deliveryOrder.getOrderId());
 
         // Another clean call using the Order Service Feign client.
-        OrderDetailsDto orderDetails = orderServiceClient.getOrderDetails(deliveryOrder.getOrderId());
+        OrderDetailsDto orderDetails = orderServiceClient.getOrderDetails(orgId,deliveryOrder.getOrderId());
 
         if (orderDetails == null) {
             throw new IllegalStateException("Could not retrieve details for orderId from order-service: " + deliveryOrder.getOrderId());
@@ -162,7 +179,8 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
         // ===================================================================
         // 4. BUILD THE FINAL REQUEST OBJECT
         // ===================================================================
-        return ShiprocketCreateOrderRequest.builder()
+        ShiprocketCreateOrderRequest request = ShiprocketCreateOrderRequest.builder()
+
                 // Core Order Info
                 .orderId(deliveryOrder.getOrderId()) // Use our internal ID for their reference
                 .orderDate(LocalDate.now().toString())
@@ -170,15 +188,27 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
 
                 // Billing / Recipient Details
                 .billingCustomerName(deliveryOrder.getRecipientName())
+                .billingLastName("O")
                 .billingAddress(orderDetails.getBillingAddressLine1())
                 .billingAddress2(orderDetails.getBillingAddressLine2())
                 .billingCity(orderDetails.getBillingCity())
                 .billingPincode(orderDetails.getBillingPincode())
                 .billingState(orderDetails.getBillingState())
                 .billingCountry("India")
+                .billingPhone(orderDetails.getCustomerPhone())
                 .billingEmail(orderDetails.getCustomerEmail())
-                .billingPhone(deliveryOrder.getRecipientPhone())
+               // .billingPhone(deliveryOrder.getRecipientPhone())
 
+
+                .shippingCustomerName(deliveryOrder.getRecipientName())
+
+                .shippingAddress(orderDetails.getBillingAddressLine1())
+                .shippingAddress2(orderDetails.getBillingAddressLine2())
+                . shippingCity(orderDetails.getBillingCity())
+                .shippingPincode(orderDetails.getBillingPincode())
+                .shippingState(orderDetails.getBillingState())
+                .shippingPhone(orderDetails.getCustomerPhone())
+                .shippingCountry("India")
                 // Shipping Details (assuming they are the same as billing)
                 .shippingIsBilling(true)
 
@@ -193,6 +223,40 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
                 .breadth(orderDetails.getPackageBreadthCm())
                 .length(orderDetails.getPackageLengthCm())
                 .build();
+
+       /* log.info("--- Shiprocket Create Order Request Payload DEBUG ---");
+        log.info("Order ID: {}", request.getOrderId());
+        log.info("Pickup Location: {}", request.getPickupLocationName());
+        log.info("Billing Customer Name: {}", request.getBillingCustomerName());
+        log.info("Billing Address 1: {}", request.getBillingAddress());
+        log.info("Billing Address 2: {}", request.getBillingAddress2());
+        log.info("Billing City: {}", request.getBillingCity());
+        log.info("Billing Pincode: {}", request.getBillingPincode());
+        log.info("Billing State: {}", request.getBillingState());
+        log.info("Billing Country: {}", request.getBillingCountry());
+        log.info("Billing Email: {}", request.getBillingEmail());
+        log.info("Billing Phone: {}", request.getBillingPhone());
+        log.info("Shipping is Billing: {}", request.getShippingIsBilling());
+        log.info("Payment Method: {}", request.getPaymentMethod());
+        log.info("Sub Total: {}", request.getSubTotal());
+        log.info("Weight (Kg): {}", request.getWeight());
+        log.info("Length (Cm): {}", request.getLength());
+        log.info("Breadth (Cm): {}", request.getBreadth());
+        log.info("Height (Cm): {}", request.getHeight());
+        log.info("Number of Items: {}", request.getOrderItems() != null ? request.getOrderItems().size() : 0);
+
+// Use Jackson to print the full JSON for ultimate clarity (add 'implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.x.x'' if not already present)
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.enable(SerializationFeature.INDENT_OUTPUT); // For pretty-printing
+        try {
+            String jsonPayload = mapper.writeValueAsString(request);
+            log.info("Full Shiprocket Request JSON:\n{}", jsonPayload);
+        } catch (JsonProcessingException e) {
+            log.error("Error converting Shiprocket request to JSON for logging", e);
+        }
+        log.info("--- END Shiprocket Create Order Request Payload DEBUG ---");*/
+
+        return request; // Return the built request object
     }
 
     /**
@@ -233,4 +297,6 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
                 return DeliveryStatus.IN_TRANSIT;
         }
     }
+
+
 }

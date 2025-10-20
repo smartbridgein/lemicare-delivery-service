@@ -6,7 +6,9 @@ import com.cosmicdoc.common.repository.DeliveryOrderRepository;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.lemicare.delivery.service.context.TenantContext;
 import com.lemicare.delivery.service.dto.request.CreateDeliveryRequest;
+import com.lemicare.delivery.service.dto.request.ShiprocketAssignAwbRequest;
 import com.lemicare.delivery.service.dto.response.DeliveryResponse;
+import com.lemicare.delivery.service.dto.response.ShiprocketAssignAwbResponse;
 import com.lemicare.delivery.service.exception.ResourceNotFoundException;
 import com.lemicare.delivery.service.strategy.DeliveryStrategyFactory;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +18,7 @@ import org.springframework.security.access.AccessDeniedException;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 
@@ -27,9 +30,9 @@ public class DeliveryOrchestrationService {
     private final DeliveryOrderRepository deliveryOrderRepository;
     private final DeliveryStrategyFactory strategyFactory;
 
-    public DeliveryResponse createDeliveryRequest(String organizationId,String branchId,CreateDeliveryRequest request) {
+    public DeliveryResponse createDeliveryRequest(String organizationId,CreateDeliveryRequest request) {
 
-        deliveryOrderRepository.findByOrderIdAndOrganizationIdAndBranchId(request.getOrderId(), organizationId, branchId)
+         deliveryOrderRepository.findByOrderIdAndOrganizationIdAndBranchId(request.getOrderId(), organizationId)
                 .ifPresent(existingOrder -> {
                     log.warn("Attempted to create a duplicate delivery for orderId: {}", request.getOrderId());
                     throw new IllegalStateException("Delivery for orderId " + request.getOrderId() + " already exists.");
@@ -39,7 +42,6 @@ public class DeliveryOrchestrationService {
                 .id(UlidCreator.getUlid().toString())
                 .orderId(request.getOrderId())
                 .organizationId(organizationId)
-                .branchId(branchId)
                 .partnerName(request.getPreferredPartner())
                 .pickupAddress(request.getPickupAddress())
                 .dropoffAddress(request.getDropoffAddress())
@@ -51,8 +53,8 @@ public class DeliveryOrchestrationService {
 
         // TODO: Add the real logic to call the strategy factory and partner API
         var strategy = strategyFactory.getStrategy(newDeliveryOrder.getPartnerName());
-        String trackingId = strategy.createShipment(newDeliveryOrder);
-        newDeliveryOrder.setPartnerTrackingId(trackingId);
+        int trackingId = strategy.createShipment(organizationId,newDeliveryOrder);
+        newDeliveryOrder.setShipmentId(trackingId);
         newDeliveryOrder.setStatus(DeliveryStatus.ACCEPTED);
 
         DeliveryOrder savedOrder = deliveryOrderRepository.save(newDeliveryOrder);
@@ -63,7 +65,7 @@ public class DeliveryOrchestrationService {
         String callerOrganizationId = TenantContext.getOrganizationId();
 
         // Fetch the delivery by its primary ID.
-        DeliveryOrder deliveryOrder = deliveryOrderRepository.findById( TenantContext.getOrganizationId(), TenantContext.getBranchId(),deliveryId)
+        DeliveryOrder deliveryOrder = deliveryOrderRepository.findById( TenantContext.getOrganizationId(), deliveryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Delivery not found with id: " + deliveryId));
 
         // CRITICAL SECURITY CHECK: Verify that the fetched resource belongs to the caller's organization.
@@ -78,13 +80,13 @@ public class DeliveryOrchestrationService {
 
     public List<DeliveryResponse> findDeliveries(DeliveryStatus status) {
         String organizationId = TenantContext.getOrganizationId();
-        String branchId = TenantContext.getBranchId();
+        String customerId = TenantContext.getUserId();
 
         List<DeliveryOrder> deliveries;
         if (status != null) {
-            deliveries = deliveryOrderRepository.findByOrganizationIdAndBranchIdAndStatus(organizationId, branchId, status);
+            deliveries = deliveryOrderRepository.findByOrganizationIdAndBranchIdAndStatus(organizationId, status,customerId);
         } else {
-            deliveries = deliveryOrderRepository.findByOrganizationIdAndBranchId(organizationId, branchId);
+            deliveries = deliveryOrderRepository.findByOrganizationIdAndBranchId(organizationId,customerId);
         }
 
         return deliveries.stream()
@@ -96,7 +98,7 @@ public class DeliveryOrchestrationService {
         String callerOrganizationId = TenantContext.getOrganizationId();
 
         // Fetch the resource first.
-        DeliveryOrder deliveryOrder = deliveryOrderRepository.findById(TenantContext.getOrganizationId(),TenantContext.getBranchId(),deliveryId)
+        DeliveryOrder deliveryOrder = deliveryOrderRepository.findById(TenantContext.getOrganizationId(),deliveryId)
                 .orElseThrow(() -> new ResourceNotFoundException("Delivery not found with id: " + deliveryId));
 
         // CRITICAL SECURITY CHECK
@@ -134,6 +136,21 @@ public class DeliveryOrchestrationService {
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .deliveredAt(order.getDeliveredAt())
+                .courierId(order.getCourierId())
+                .shipmentId(order.getShipmentId())
                 .build();
+    }
+
+    public DeliveryResponse createAwb(ShiprocketAssignAwbRequest request) {
+        DeliveryOrder deliveryOrder = deliveryOrderRepository.findById(TenantContext.getOrganizationId(), String.valueOf(request.getShipment_id()))
+                .orElseThrow(() -> new ResourceNotFoundException("Delivery not found with id: " + request.getShipment_id()));
+        String orgId = TenantContext.getOrganizationId();
+        var strategy = strategyFactory.getStrategy(deliveryOrder.getPartnerName());
+        String awbId = strategy.assignAwb(orgId,request);
+
+        deliveryOrder.setPartnerTrackingId(awbId);
+        deliveryOrder.setUpdatedAt(new Date());
+        DeliveryOrder updatedOrder = deliveryOrderRepository.save(deliveryOrder);
+        return mapToResponse(updatedOrder);
     }
 }

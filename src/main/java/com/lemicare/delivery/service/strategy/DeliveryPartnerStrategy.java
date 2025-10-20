@@ -2,6 +2,7 @@ package com.lemicare.delivery.service.strategy;
 
 import com.cosmicdoc.common.model.DeliveryOrder;
 import com.cosmicdoc.common.model.DeliveryStatus;
+import com.lemicare.delivery.service.dto.request.ShiprocketAssignAwbRequest;
 import com.lemicare.delivery.service.exception.PartnerApiException;
 
 /**
@@ -30,8 +31,9 @@ public interface DeliveryPartnerStrategy {
      * @return The unique tracking ID provided by the partner.
      * @throws PartnerApiException if the API call fails for any reason.
      */
-    String createShipment(DeliveryOrder deliveryOrder) throws PartnerApiException;
+    int createShipment(String orgId,DeliveryOrder deliveryOrder) throws PartnerApiException;
 
+    String assignAwb (String orgId, ShiprocketAssignAwbRequest shiprocketAssignAwbRequest);
     /**
      * Cancels an existing shipment with the external partner.
      *
