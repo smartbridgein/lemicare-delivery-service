@@ -30,7 +30,7 @@ public class DeliveryOrchestrationService {
     private final DeliveryOrderRepository deliveryOrderRepository;
     private final DeliveryStrategyFactory strategyFactory;
 
-    public DeliveryResponse createDeliveryRequest(String organizationId,CreateDeliveryRequest request) {
+    public DeliveryResponse createDeliveryRequest(String organizationId,String customerId,CreateDeliveryRequest request) {
 
          deliveryOrderRepository.findByOrderIdAndOrganizationIdAndBranchId(request.getOrderId(), organizationId)
                 .ifPresent(existingOrder -> {
@@ -42,6 +42,7 @@ public class DeliveryOrchestrationService {
                 .id(UlidCreator.getUlid().toString())
                 .orderId(request.getOrderId())
                 .organizationId(organizationId)
+                .customerId(customerId)
                 .partnerName(request.getPreferredPartner())
                 .pickupAddress(request.getPickupAddress())
                 .dropoffAddress(request.getDropoffAddress())
@@ -126,6 +127,7 @@ public class DeliveryOrchestrationService {
                 .orderId(order.getOrderId())
                 .organizationId(order.getOrganizationId())
                 .branchId(order.getBranchId())
+                .customerId(order.getCustomerId())
                 .partnerName(order.getPartnerName())
                 .partnerTrackingId(order.getPartnerTrackingId())
                 .status(order.getStatus())

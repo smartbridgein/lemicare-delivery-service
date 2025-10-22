@@ -45,8 +45,8 @@ public class DeliveryController {
     public ResponseEntity<DeliveryResponse> createDeliveryRequest(@Valid @RequestBody CreateDeliveryRequest request) {
 
         String organizationId = SecurityUtils.getOrganizationId();
-       // String branchId = SecurityUtils.getBranchId();
-        DeliveryResponse response = deliveryService.createDeliveryRequest(organizationId,request);
+        String customerId = SecurityUtils.getUserId();
+        DeliveryResponse response = deliveryService.createDeliveryRequest(organizationId,customerId,request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 

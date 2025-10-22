@@ -76,4 +76,6 @@ public class DeliveryResponse {
     private int courierId;
 
     private int shipmentId;
+
+    private String customerId;
 }
