@@ -22,12 +22,14 @@ spring:
         jwt:
           # VALIDATION RULE 1: The 'iss' (issuer) claim in the JWT must match this.
           # It must be identical to 'app.jwt.issuer' in your auth-service.
-          issuer: "https://cosmicdoc.com" # Standardized issuer
+          issuer: "https://smartbridgein.com" # Standardized issuer
 
           # VALIDATION RULE 2: The JWT's signature must be valid against this secret key.
           # It must be identical to 'app.jwt.secret-key' in your auth-service.
           # In production, this MUST be loaded from an environment variable.
           secret-key: "YourSuperStrongAndLongSecretKeyForHmacShaAlgorithmsAtLeast256Bits"
+
+          audience: "MS"
 
 # ===================================================================
 # PARTNER & EXTERNAL API CONFIGURATION

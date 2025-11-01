@@ -34,6 +34,12 @@ public class SecurityConfig {
     @Value("${spring.security.oauth2.resourceserver.jwt.secret-key}")
     private String jwtSecretKey;
 
+    @Value("${spring.security.oauth2.resourceserver.jwt.issuer}")
+    private String jwtIssuer;
+
+    @Value("${spring.security.oauth2.resourceserver.jwt.audience}")
+    private String jwtAudience;
+
     private final TenantFilter tenantFilter;
 
     @Bean
