@@ -1,35 +1,16 @@
-# ===================================================================
-# SERVER CONFIGURATION
-# ===================================================================
 server:
-  # A unique port for the delivery-service.
   port: 8085
 
-# ===================================================================
-# CORE SPRING APPLICATION CONFIGURATION
-# ===================================================================
-spring:
-  application:
-    name: delivery-service
 
-  # ===================================================================
-  # SECURITY CONFIGURATION (OAUTH2 RESOURCE SERVER)
-  # ===================================================================
-  # This configures how the service validates incoming JWTs.
+spring:
   security:
     oauth2:
       resourceserver:
         jwt:
-          # VALIDATION RULE 1: The 'iss' (issuer) claim in the JWT must match this.
-          # It must be identical to 'app.jwt.issuer' in your auth-service.
-          issuer: "https://smartbridgein.com" # Standardized issuer
-
-          # VALIDATION RULE 2: The JWT's signature must be valid against this secret key.
-          # It must be identical to 'app.jwt.secret-key' in your auth-service.
-          # In production, this MUST be loaded from an environment variable.
           secret-key: "YourSuperStrongAndLongSecretKeyForHmacShaAlgorithmsAtLeast256Bits"
-
+          issuer: "https://smartbridgein.com"
           audience: "MS"
+
 
 # ===================================================================
 # PARTNER & EXTERNAL API CONFIGURATION
@@ -40,7 +21,7 @@ shiprocket:
     # SECRETS are now correctly read from environment variables.
     # The value after the colon ':' is a fallback for local development only.
     #email: "${SHIPROCKET_EMAIL:your-dev-email@example.com}"
-   # password: "${SHIPROCKET_PASSWORD:your-dev-password}"
+    # password: "${SHIPROCKET_PASSWORD:your-dev-password}"
     email: moyyappa@gmail.com
     password: xLB7sOzV#%Vd$b9q
     webhook-secret: "123456"
@@ -58,12 +39,12 @@ shiprocket:
 services:
   # The base URL for the organization-service, pointing to the API Gateway.
   organization:
-   # url: "https://auth-service-511338430385.asia-south1.run.app"
+
     url: "http://localhost:8081" # Points to the API Gateway
 
   # The base URL for the order-service (e.g., storefront-service).
   order:
-   #url: "https://lemicare-cms-service-511338430385.asia-south1.run.app"
+
     url: "http://localhost:8086" # Also points to the API Gateway
 
 # ===================================================================
@@ -73,13 +54,3 @@ app:
   firebase:
     # Path to the service account key for Firestore access.
     service-account-path: "google-services.json"
-
-# ===================================================================
-# ACTUATOR / MANAGEMENT ENDPOINTS
-# ===================================================================
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "health,info"
-

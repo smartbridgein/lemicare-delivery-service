@@ -47,16 +47,5 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 .body(problemDetail);
     }
 
-    // You can add more @ExceptionHandler methods for other common exceptions like:
-    // @ExceptionHandler(IllegalArgumentException.class)
-    // public ResponseEntity<ProblemDetail> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
-    //     ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, ex.getMessage());
-    //     problemDetail.setTitle("Invalid Request Parameter");
-    //     problemDetail.setType(URI.create("https://lemicare.com/errors/invalid-parameter"));
-    //     problemDetail.setInstance(URI.create(request.getDescription(false).substring(request.getDescription(false).indexOf("uri=") + 4)));
-    //     problemDetail.setProperty("timestamp", Instant.now());
-    //     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
-    // }
 
-    // ... handle other exceptions as needed
 }

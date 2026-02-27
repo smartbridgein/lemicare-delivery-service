@@ -137,7 +137,7 @@ public class ShiprocketCreateOrderRequest {
     private Double totalDiscount;
 
     @JsonProperty("sub_total")
-    private Double subTotal; // The total price of all order_items
+    private Integer subTotal; // The total price of all order_items
 
 
     // --- Package Dimensions (in cms and kgs) ---
@@ -174,7 +174,7 @@ public class ShiprocketCreateOrderRequest {
         private Integer units;
 
         @JsonProperty("selling_price")
-        private String sellingPrice; // Per unit price
+        private Integer sellingPrice; // Per unit price
 
         @JsonProperty("discount")
         private String discount;

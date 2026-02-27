@@ -171,7 +171,7 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
                         .name(item.getName())
                         .sku(item.getSku())
                         .units(item.getQuantity())
-                        .sellingPrice(String.valueOf(item.getUnitPrice())) // Shiprocket expects a string
+                        .sellingPrice(item.getUnitPrice())// Shiprocket expects a string
                         .hsn(item.getHsnCode())
                         .build())
                 .collect(Collectors.toList());
@@ -215,8 +215,7 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
                 // Line Items and Financials
                 .orderItems(shiprocketItems)
                 .paymentMethod(orderDetails.getPaymentMethod()) // e.g., "Prepaid", "COD"
-                .subTotal(orderDetails.getTotalOrderValue())
-
+                .subTotal(((int) Math.round(orderDetails.getTotalOrderValue())))
                 // Package Dimensions
                 .weight(orderDetails.getTotalWeightKg())
                 .height(orderDetails.getPackageHeightCm())

@@ -83,7 +83,7 @@ public class OrderDetailsDto {
         private Integer quantity;
 
         /** The price per single unit. */
-        private Double unitPrice;
+        private Integer unitPrice;
 
         /** The Harmonized System of Nomenclature (HSN) code for tax purposes. */
         private Integer hsnCode;

@@ -1,0 +1,47 @@
+server:
+  port: ${PORT}
+
+security:
+  oauth2:
+    resourceserver:
+      jwt:
+        issuer: ${JWT_ISSUER}
+        secret-key: ${JWT_SECRET_KEY}
+        audience: ${JWT_AUDIENCE}
+
+services:
+
+  organization:
+     url: "https://auth-service-511338430385.asia-south1.run.app"
+
+
+  # The base URL for the order-service (e.g., storefront-service).
+  order:
+    url: "https://lemicare-cms-service-511338430385.asia-south1.run.app"
+
+# ===================================================================
+# PARTNER & EXTERNAL API CONFIGURATION
+# ===================================================================
+shiprocket:
+  api:
+    base-url: "https://apiv2.shiprocket.in"
+    # SECRETS are now correctly read from environment variables.
+    # The value after the colon ':' is a fallback for local development only.
+    #email: "${SHIPROCKET_EMAIL:your-dev-email@example.com}"
+    # password: "${SHIPROCKET_PASSWORD:your-dev-password}"
+    email:  ${EMAIL}
+    password:  ${PASS}
+    webhook-secret: ${SEC}
+    auth-token-cache-expiry-minutes: 55 # Optional, default is 55
+
+  logging:
+    level:
+      com.lemicare.delivery.service.client.ShiprocketApiClient: DEBUG
+
+# ===================================================================
+# CUSTOM APPLICATION PROPERTIES
+# ===================================================================
+app:
+  firebase:
+    # Path to the service account key for Firestore access.
+    service-account-path: "google-services.json"

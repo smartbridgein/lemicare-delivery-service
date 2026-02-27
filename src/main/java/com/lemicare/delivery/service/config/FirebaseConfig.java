@@ -22,7 +22,7 @@ import java.io.InputStream;
  * requiring a live Firebase connection or a 'google-services.json' file.
  */
 @Configuration
-@Profile("!local") // CRITICAL: This bean will not be created if the profile is 'local'.
+@Profile("!test") // CRITICAL: This bean will not be created if the profile is 'local'.
 public class FirebaseConfig {
 
     // Injects the path to the service account key from application.yml
