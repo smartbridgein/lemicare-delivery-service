@@ -78,4 +78,6 @@ public class DeliveryResponse {
     private int shipmentId;
 
     private String customerId;
+
+    private String pickupAddress;
 }

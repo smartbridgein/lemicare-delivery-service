@@ -1,8 +1,12 @@
 package com.lemicare.delivery.service.service;
 
+import com.cosmicdoc.common.model.Branch;
 import com.cosmicdoc.common.model.DeliveryOrder;
 import com.cosmicdoc.common.model.DeliveryStatus;
+import com.cosmicdoc.common.model.StorefrontOrder;
+import com.cosmicdoc.common.repository.BranchRepository;
 import com.cosmicdoc.common.repository.DeliveryOrderRepository;
+import com.cosmicdoc.common.repository.StorefrontOrderRepository;
 import com.github.f4b6a3.ulid.UlidCreator;
 import com.lemicare.delivery.service.context.TenantContext;
 import com.lemicare.delivery.service.dto.request.CreateDeliveryRequest;
@@ -29,26 +33,45 @@ public class DeliveryOrchestrationService {
 
     private final DeliveryOrderRepository deliveryOrderRepository;
     private final DeliveryStrategyFactory strategyFactory;
+    private final StorefrontOrderRepository storefrontOrderRepository;
+    private final BranchRepository branchRepository;
 
     public DeliveryResponse createDeliveryRequest(String organizationId,String customerId,CreateDeliveryRequest request) {
 
-         deliveryOrderRepository.findByOrderIdAndOrganizationIdAndBranchId(request.getOrderId(), organizationId)
+        deliveryOrderRepository.findByOrderIdAndOrganizationIdAndBranchId(request.getOrderId(), organizationId)
                 .ifPresent(existingOrder -> {
                     log.warn("Attempted to create a duplicate delivery for orderId: {}", request.getOrderId());
                     throw new IllegalStateException("Delivery for orderId " + request.getOrderId() + " already exists.");
                 });
 
+        // 2️⃣ Validate branch
+        Branch branch = branchRepository
+                .findFirstByOrganizationId(organizationId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException(
+                                "Branch not found"));
+
+        // 3️⃣ Validate storefront order
+        StorefrontOrder storefrontOrder =
+                storefrontOrderRepository
+                        .findById(organizationId,
+                                request.getOrderId())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Order not found"));
+        DeliveryOrder savedOrder = null;
         DeliveryOrder newDeliveryOrder = DeliveryOrder.builder()
                 .id(UlidCreator.getUlid().toString())
                 .orderId(request.getOrderId())
                 .organizationId(organizationId)
                 .customerId(customerId)
                 .partnerName(request.getPreferredPartner())
-                .pickupAddress(request.getPickupAddress())
-                .dropoffAddress(request.getDropoffAddress())
+                .pickupAddress(branch.getPrimaryPickupAddress().toString())
+                .dropoffAddress(storefrontOrder.getShippingAddress().toString())
                 .recipientName(request.getRecipientName())
                 .recipientPhone(request.getRecipientPhone())
                 .status(DeliveryStatus.PENDING)
+                .courierId(storefrontOrder.getCourierId())
                 .updatedAt(new Date())
                 .build();
 
@@ -57,8 +80,8 @@ public class DeliveryOrchestrationService {
         int trackingId = strategy.createShipment(organizationId,newDeliveryOrder);
         newDeliveryOrder.setShipmentId(trackingId);
         newDeliveryOrder.setStatus(DeliveryStatus.ACCEPTED);
+        savedOrder = deliveryOrderRepository.save(newDeliveryOrder);
 
-        DeliveryOrder savedOrder = deliveryOrderRepository.save(newDeliveryOrder);
         return mapToResponse(savedOrder);
     }
 
@@ -132,6 +155,7 @@ public class DeliveryOrchestrationService {
                 .partnerTrackingId(order.getPartnerTrackingId())
                 .status(order.getStatus())
                 .dropoffAddress(order.getDropoffAddress())
+                .pickupAddress(order.getPickupAddress())
                 .recipientName(order.getRecipientName())
                 .deliveryFee(order.getDeliveryFee())
                 .notes(order.getNotes())

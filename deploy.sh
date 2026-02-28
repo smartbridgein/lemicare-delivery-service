@@ -30,8 +30,7 @@ gcloud run deploy "${SERVICE_NAME}" \
   --set-env-vars JWT_AUDIENCE=MS \
   --set-env-vars JWT_SECRET_KEY=YourSuperStrongAndLongSecretKeyForHmacShaAlgorithmsAtLeast256Bits \
   --set-env-vars EMAIL=moyyappa@gmail.com \
-  --set-env-vars PASS=xLB7sOzV#%Vd$b9q \
-  --set-env-vars SEC=123456abc
-
+  --set-env-vars PASS='xLB7sOzV#%Vd$b9q' \
+  --set-env-vars SEC=123456
 
 echo "✅ Deployment completed"
