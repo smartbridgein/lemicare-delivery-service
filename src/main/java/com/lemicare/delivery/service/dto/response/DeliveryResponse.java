@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
 
 /**
  * The standard Data Transfer Object (DTO) for all API responses that return
@@ -80,4 +81,10 @@ public class DeliveryResponse {
     private String customerId;
 
     private String pickupAddress;
+
+    private List<DeliveryItemResponse> items;
+    private int totalItems;        // number of distinct products
+    private int totalQuantity;     // total quantity of all products
+    private double orderGrandTotal;
+
 }

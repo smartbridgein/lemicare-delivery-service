@@ -1,9 +1,6 @@
 package com.lemicare.delivery.service.service;
 
-import com.cosmicdoc.common.model.Branch;
-import com.cosmicdoc.common.model.DeliveryOrder;
-import com.cosmicdoc.common.model.DeliveryStatus;
-import com.cosmicdoc.common.model.StorefrontOrder;
+import com.cosmicdoc.common.model.*;
 import com.cosmicdoc.common.repository.BranchRepository;
 import com.cosmicdoc.common.repository.DeliveryOrderRepository;
 import com.cosmicdoc.common.repository.StorefrontOrderRepository;
@@ -11,6 +8,7 @@ import com.github.f4b6a3.ulid.UlidCreator;
 import com.lemicare.delivery.service.context.TenantContext;
 import com.lemicare.delivery.service.dto.request.CreateDeliveryRequest;
 import com.lemicare.delivery.service.dto.request.ShiprocketAssignAwbRequest;
+import com.lemicare.delivery.service.dto.response.DeliveryItemResponse;
 import com.lemicare.delivery.service.dto.response.DeliveryResponse;
 import com.lemicare.delivery.service.dto.response.ShiprocketAssignAwbResponse;
 import com.lemicare.delivery.service.exception.ResourceNotFoundException;
@@ -86,20 +84,30 @@ public class DeliveryOrchestrationService {
     }
 
     public DeliveryResponse getDeliveryById(String deliveryId) {
-        String callerOrganizationId = TenantContext.getOrganizationId();
 
-        // Fetch the delivery by its primary ID.
-        DeliveryOrder deliveryOrder = deliveryOrderRepository.findById( TenantContext.getOrganizationId(), deliveryId)
-                .orElseThrow(() -> new ResourceNotFoundException("Delivery not found with id: " + deliveryId));
+        String orgId = TenantContext.getOrganizationId();
 
-        // CRITICAL SECURITY CHECK: Verify that the fetched resource belongs to the caller's organization.
-        if (!deliveryOrder.getOrganizationId().equals(callerOrganizationId)) {
-            log.warn("SECURITY ALERT: User from organization '{}' attempted to access delivery '{}' belonging to organization '{}'.",
-                    callerOrganizationId, deliveryId, deliveryOrder.getOrganizationId());
-            throw new AccessDeniedException("You do not have permission to access this resource.");
+        DeliveryOrder deliveryOrder =
+                deliveryOrderRepository
+                        .findById(orgId, deliveryId)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Delivery not found: " + deliveryId));
+
+        // Tenant protection (optional if repo already filters by org)
+        if (!deliveryOrder.getOrganizationId().equals(orgId)) {
+            throw new AccessDeniedException("Access denied");
         }
 
-        return mapToResponse(deliveryOrder);
+        // 🔥 Fetch Storefront order
+        StorefrontOrder storefrontOrder =
+                storefrontOrderRepository
+                        .findById(orgId, deliveryOrder.getOrderId())
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException(
+                                        "Order not found"));
+
+        return mapToResponse(deliveryOrder, storefrontOrder);
     }
 
     public List<DeliveryResponse> findDeliveries(DeliveryStatus status) {
@@ -142,6 +150,50 @@ public class DeliveryOrchestrationService {
 
         DeliveryOrder updatedOrder = deliveryOrderRepository.save(deliveryOrder);
         return mapToResponse(updatedOrder);
+    }
+
+    private DeliveryResponse mapToResponse(
+            DeliveryOrder deliveryOrder,
+            StorefrontOrder storefrontOrder) {
+
+        List<DeliveryItemResponse> items =
+                storefrontOrder.getItems()
+                        .stream()
+                        .map(item -> DeliveryItemResponse.builder()
+                                .medicineId(item.getMedicineId())
+                                .productName(item.getProductName())
+                                .quantity(item.getQuantity())
+                                .unitPrice(item.getSalePrice())
+                                .totalAmount(item.getLineItemTotalAmount())
+                                .build())
+                        .toList();
+
+        int totalQuantity = storefrontOrder.getItems()
+                .stream()
+                .mapToInt(SaleItem::getQuantity)
+                .sum();
+
+        return DeliveryResponse.builder()
+                .id(deliveryOrder.getId())
+                .orderId(deliveryOrder.getOrderId())
+                .organizationId(deliveryOrder.getOrganizationId())
+                .branchId(deliveryOrder.getBranchId())
+                .partnerName(deliveryOrder.getPartnerName())
+                .status(deliveryOrder.getStatus())
+                .recipientName(deliveryOrder.getRecipientName())
+                .shipmentId(deliveryOrder.getShipmentId())
+                .courierId(deliveryOrder.getCourierId())
+                .customerId(deliveryOrder.getCustomerId())
+                .createdAt(deliveryOrder.getCreatedAt())
+                .updatedAt(deliveryOrder.getUpdatedAt())
+
+                // 🔥 New fields
+                .items(items)
+                .totalItems(items.size())
+                .totalQuantity(totalQuantity)
+                .orderGrandTotal(storefrontOrder.getGrandTotal())
+
+                .build();
     }
 
     private DeliveryResponse mapToResponse(DeliveryOrder order) {
