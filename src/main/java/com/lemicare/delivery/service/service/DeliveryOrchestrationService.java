@@ -225,7 +225,6 @@ public class DeliveryOrchestrationService {
                 .branchId(order.getBranchId())
                 .customerId(order.getCustomerId())
                 .partnerName(order.getPartnerName())
-                .partnerTrackingId(order.getPartnerTrackingId())
                 .status(String.valueOf(order.getStatus()))
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())

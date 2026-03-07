@@ -26,13 +26,8 @@ public class OrderResponse {
 
     private String partnerName;
 
-    private String partnerTrackingId;
 
     private String status;
-
-    private String recipientName;
-
-    private Double deliveryFee;
 
     private Date createdAt;
 
