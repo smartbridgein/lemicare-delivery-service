@@ -10,6 +10,7 @@ import com.lemicare.delivery.service.dto.request.CreateDeliveryRequest;
 import com.lemicare.delivery.service.dto.request.ShiprocketAssignAwbRequest;
 import com.lemicare.delivery.service.dto.response.DeliveryItemResponse;
 import com.lemicare.delivery.service.dto.response.DeliveryResponse;
+import com.lemicare.delivery.service.dto.response.OrderResponse;
 import com.lemicare.delivery.service.dto.response.ShiprocketAssignAwbResponse;
 import com.lemicare.delivery.service.exception.ResourceNotFoundException;
 import com.lemicare.delivery.service.strategy.DeliveryStrategyFactory;
@@ -110,7 +111,7 @@ public class DeliveryOrchestrationService {
         return mapToResponse(deliveryOrder, storefrontOrder);
     }
 
-    public List<DeliveryResponse> findDeliveries(DeliveryStatus status) {
+    public List<OrderResponse> findDeliveries(DeliveryStatus status) {
         String organizationId = TenantContext.getOrganizationId();
         String customerId = TenantContext.getUserId();
 
@@ -122,7 +123,7 @@ public class DeliveryOrchestrationService {
         }
 
         return deliveries.stream()
-                .map(this::mapToResponse)
+                .map(this::responseMap)
                 .collect(Collectors.toList());
     }
 
@@ -186,13 +187,10 @@ public class DeliveryOrchestrationService {
                 .customerId(deliveryOrder.getCustomerId())
                 .createdAt(deliveryOrder.getCreatedAt())
                 .updatedAt(deliveryOrder.getUpdatedAt())
-
-                // 🔥 New fields
                 .items(items)
                 .totalItems(items.size())
                 .totalQuantity(totalQuantity)
                 .orderGrandTotal(storefrontOrder.getGrandTotal())
-
                 .build();
     }
 
@@ -211,6 +209,24 @@ public class DeliveryOrchestrationService {
                 .recipientName(order.getRecipientName())
                 .deliveryFee(order.getDeliveryFee())
                 .notes(order.getNotes())
+                .createdAt(order.getCreatedAt())
+                .updatedAt(order.getUpdatedAt())
+                .deliveredAt(order.getDeliveredAt())
+                .courierId(order.getCourierId())
+                .shipmentId(order.getShipmentId())
+                .build();
+    }
+
+    private OrderResponse responseMap(DeliveryOrder order) {
+        return OrderResponse.builder()
+                .id(order.getId())
+                .orderId(order.getOrderId())
+                .organizationId(order.getOrganizationId())
+                .branchId(order.getBranchId())
+                .customerId(order.getCustomerId())
+                .partnerName(order.getPartnerName())
+                .partnerTrackingId(order.getPartnerTrackingId())
+                .status(String.valueOf(order.getStatus()))
                 .createdAt(order.getCreatedAt())
                 .updatedAt(order.getUpdatedAt())
                 .deliveredAt(order.getDeliveredAt())

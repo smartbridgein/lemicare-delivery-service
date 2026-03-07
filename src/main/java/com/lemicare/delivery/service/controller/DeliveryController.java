@@ -6,6 +6,7 @@ import com.lemicare.delivery.service.dto.request.CancelRequest;
 import com.lemicare.delivery.service.dto.request.CreateDeliveryRequest;
 import com.lemicare.delivery.service.dto.request.ShiprocketAssignAwbRequest;
 import com.lemicare.delivery.service.dto.response.DeliveryResponse;
+import com.lemicare.delivery.service.dto.response.OrderResponse;
 import com.lemicare.delivery.service.dto.response.ShiprocketAssignAwbResponse;
 import com.lemicare.delivery.service.security.SecurityUtils;
 import com.lemicare.delivery.service.service.DeliveryOrchestrationService;
@@ -75,13 +76,13 @@ public class DeliveryController {
      */
     @GetMapping
     @PreAuthorize("hasAnyAuthority('SCOPE_customer.read', 'SCOPE_customer.write')")
-    public ResponseEntity<List<DeliveryResponse>> findDeliveries(
+    public ResponseEntity<List<OrderResponse>> findDeliveries(
             @RequestParam(required = false) DeliveryStatus status) {
 
         log.info("API: Searching deliveries with status '{}' for org: {}, customer: {}",
                 status, TenantContext.getOrganizationId(), TenantContext.getUserId());
 
-        List<DeliveryResponse> responses = deliveryService.findDeliveries(status);
+        List<OrderResponse> responses = deliveryService.findDeliveries(status);
         return ResponseEntity.ok(responses);
     }
 
