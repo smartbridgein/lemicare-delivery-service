@@ -1,5 +1,5 @@
 server:
-  port: ${PORT}
+  port: ${PORT:8080}
 
 security:
   oauth2:
@@ -12,12 +12,12 @@ security:
 services:
 
   organization:
-     url: "https://auth-service-511338430385.asia-south1.run.app"
+     url: "https://auth-service-145837205370.asia-south1.run.app"
 
 
   # The base URL for the order-service (e.g., storefront-service).
   order:
-    url: "https://lemicare-cms-service-511338430385.asia-south1.run.app"
+    url: "https://lemicare-cms-service-145837205370.asia-south1.run.app"
 
 # ===================================================================
 # PARTNER & EXTERNAL API CONFIGURATION

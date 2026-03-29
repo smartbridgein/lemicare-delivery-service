@@ -3,7 +3,7 @@
 # ===================================================================
 server:
   # A unique port for the delivery-service.
-  port: 8085
+  port: 8080
 
 # ===================================================================
 # CORE SPRING APPLICATION CONFIGURATION
@@ -31,25 +31,6 @@ spring:
 
           audience: "MS"
 
-# ===================================================================
-# PARTNER & EXTERNAL API CONFIGURATION
-# ===================================================================
-shiprocket:
-  api:
-    base-url: "https://apiv2.shiprocket.in"
-    # SECRETS are now correctly read from environment variables.
-    # The value after the colon ':' is a fallback for local development only.
-    #email: "${SHIPROCKET_EMAIL:your-dev-email@example.com}"
-   # password: "${SHIPROCKET_PASSWORD:your-dev-password}"
-    email: moyyappa@gmail.com
-    password: xLB7sOzV#%Vd$b9q
-    webhook-secret: "123456"
-    auth-token-cache-expiry-minutes: 55 # Optional, default is 55
-
-  logging:
-    level:
-      com.lemicare.delivery.service.client.ShiprocketApiClient: DEBUG
-
 
 # ===================================================================
 # DOWNSTREAM MICROSERVICE URLS (For Feign Clients)
@@ -58,13 +39,13 @@ shiprocket:
 services:
   # The base URL for the organization-service, pointing to the API Gateway.
   organization:
-   # url: "https://auth-service-511338430385.asia-south1.run.app"
-    url: "http://localhost:8081" # Points to the API Gateway
+   url: "https://auth-service-145837205370.asia-south1.run.app"
+    #url: "http://localhost:8081" # Points to the API Gateway
 
   # The base URL for the order-service (e.g., storefront-service).
   order:
-   #url: "https://lemicare-cms-service-511338430385.asia-south1.run.app"
-    url: "http://localhost:8086" # Also points to the API Gateway
+   url: "https://lemicare-cms-service-145837205370.asia-south1.run.app"
+    #url: "http://localhost:8086" # Also points to the API Gateway
 
 # ===================================================================
 # CUSTOM APPLICATION PROPERTIES

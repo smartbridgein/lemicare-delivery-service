@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-PROJECT_ID="lemicareprod"
+PROJECT_ID="lemicare-prod"
 REGION="asia-south1"
 SERVICE_NAME="lemicare-delivery-service"
 IMAGE="gcr.io/${PROJECT_ID}/${SERVICE_NAME}:latest"
@@ -29,8 +29,8 @@ gcloud run deploy "${SERVICE_NAME}" \
   --set-env-vars JWT_ISSUER=https://smartbridgein.com \
   --set-env-vars JWT_AUDIENCE=MS \
   --set-env-vars JWT_SECRET_KEY=YourSuperStrongAndLongSecretKeyForHmacShaAlgorithmsAtLeast256Bits \
-  --set-env-vars EMAIL=moyyappa@gmail.com \
-  --set-env-vars PASS='xLB7sOzV#%Vd$b9q' \
+  --set-env-vars EMAIL=drhananshiprocket@gmail.com \
+  --set-env-vars PASS='Trs^tU!rN&$*0qJNJc8hyj9EmPHZ@zMt' \
   --set-env-vars SEC=123456
 
 echo "✅ Deployment completed"

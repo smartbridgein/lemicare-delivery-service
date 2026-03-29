@@ -204,7 +204,7 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
 
                 .shippingAddress(orderDetails.getBillingAddressLine1())
                 .shippingAddress2(orderDetails.getBillingAddressLine2())
-                . shippingCity(orderDetails.getBillingCity())
+                .shippingCity(orderDetails.getBillingCity())
                 .shippingPincode(orderDetails.getBillingPincode())
                 .shippingState(orderDetails.getBillingState())
                 .shippingPhone(orderDetails.getCustomerPhone())
@@ -222,38 +222,6 @@ public class ShiprocketStrategyImpl implements DeliveryPartnerStrategy {
                 .breadth(orderDetails.getPackageBreadthCm())
                 .length(orderDetails.getPackageLengthCm())
                 .build();
-
-       /* log.info("--- Shiprocket Create Order Request Payload DEBUG ---");
-        log.info("Order ID: {}", request.getOrderId());
-        log.info("Pickup Location: {}", request.getPickupLocationName());
-        log.info("Billing Customer Name: {}", request.getBillingCustomerName());
-        log.info("Billing Address 1: {}", request.getBillingAddress());
-        log.info("Billing Address 2: {}", request.getBillingAddress2());
-        log.info("Billing City: {}", request.getBillingCity());
-        log.info("Billing Pincode: {}", request.getBillingPincode());
-        log.info("Billing State: {}", request.getBillingState());
-        log.info("Billing Country: {}", request.getBillingCountry());
-        log.info("Billing Email: {}", request.getBillingEmail());
-        log.info("Billing Phone: {}", request.getBillingPhone());
-        log.info("Shipping is Billing: {}", request.getShippingIsBilling());
-        log.info("Payment Method: {}", request.getPaymentMethod());
-        log.info("Sub Total: {}", request.getSubTotal());
-        log.info("Weight (Kg): {}", request.getWeight());
-        log.info("Length (Cm): {}", request.getLength());
-        log.info("Breadth (Cm): {}", request.getBreadth());
-        log.info("Height (Cm): {}", request.getHeight());
-        log.info("Number of Items: {}", request.getOrderItems() != null ? request.getOrderItems().size() : 0);
-
-// Use Jackson to print the full JSON for ultimate clarity (add 'implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.x.x'' if not already present)
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.enable(SerializationFeature.INDENT_OUTPUT); // For pretty-printing
-        try {
-            String jsonPayload = mapper.writeValueAsString(request);
-            log.info("Full Shiprocket Request JSON:\n{}", jsonPayload);
-        } catch (JsonProcessingException e) {
-            log.error("Error converting Shiprocket request to JSON for logging", e);
-        }
-        log.info("--- END Shiprocket Create Order Request Payload DEBUG ---");*/
 
         return request; // Return the built request object
     }
